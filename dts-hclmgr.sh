@@ -19,15 +19,28 @@ if [ ! -d logs  ]; then
     tar xvf $1 > /dev/null
 fi
 
+dasharo_version=$(grep Version logs/dmidecode.log|grep Dasharo|cut -d" " -f4)
+
+# CPU HCL
 processor=$(grep "model name" logs/cpuinfo.log |head -1|cut -d":" -f2|sed 's/^ *//g')
+
+# Memory HCL
 manufacturer=$(grep "Manufacturer" logs/dmidecode.log |head -1|cut -d":" -f2|sed 's/^ *//g')
+
+# Mainboard HCL
 product_name=$(grep "Product Name" logs/dmidecode.log |head -1|cut -d":" -f2|sed 's/^ *//g')
+
+# GPU HCL
+
 # TBD: not used in optiplex
 # sku_number=$(grep "SKU Number" logs/dmidecode.log |head -1|cut -d":" -f2|sed 's/^ *//g')
 board_version=$(grep "Board Information" logs/dmidecode.log -A3|grep "Version"|head -1|cut -d":" -f2|sed 's/^ *//g')
 flashrom_chipset=$(grep chipset logs/flashrom_read.log|head -1|cut -d\" -f2|sed 's/^ *//g')
 lspci_chipset=$(grep chipset logs/flashrom_read.log|head -1|cut -d\" -f2|sed 's/^ *//g')
 
-echo "Processor: $processor"
+echo "CPU HCL entry"
+echo ""
+echo "| $processor | $dasharo_version | Dasharo HCL report |"
+echo ""
 echo "Motherboard: $manufacturer $product_name $board_version"
 echo "Chipset: $flashrom_chipset"
