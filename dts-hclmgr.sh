@@ -19,6 +19,8 @@ if [ ! -d logs  ]; then
     tar xvf $1 > /dev/null
 fi
 
+tar xf $1
+
 dasharo_version=$(grep Version logs/dmidecode.log|grep Dasharo|cut -d" " -f4)
 
 # CPU HCL
@@ -38,9 +40,6 @@ board_version=$(grep "Board Information" logs/dmidecode.log -A3|grep "Version"|h
 flashrom_chipset=$(grep chipset logs/flashrom_read.log|head -1|cut -d\" -f2|sed 's/^ *//g')
 lspci_chipset=$(grep chipset logs/flashrom_read.log|head -1|cut -d\" -f2|sed 's/^ *//g')
 
-echo "CPU HCL entry"
-echo ""
 echo "| $processor | $dasharo_version | Dasharo HCL report |"
-echo ""
-echo "Motherboard: $manufacturer $product_name $board_version"
-echo "Chipset: $flashrom_chipset"
+# echo "Motherboard: $manufacturer $product_name $board_version"
+# echo "Chipset: $flashrom_chipset"
