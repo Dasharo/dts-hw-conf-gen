@@ -56,3 +56,7 @@ flags:
     short: -f
     help: Ignore warning that directory with logs already exist.
     default: false
+  - long: --quiet
+    short: -q
+    help: Do no throw errors while parsin HCLs.
+    default: false

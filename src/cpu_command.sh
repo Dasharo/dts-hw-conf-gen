@@ -1,6 +1,7 @@
 # Variable containing the path to the tar.gz file
 hcl_report=${args[hcl_report]}
 force=${args[--force]}
+quiet=${args[--quiet]}
 
 # Extract the directory name from the file path
 dir_name=$(basename "$hcl_report" .tar.gz)
