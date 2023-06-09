@@ -28,7 +28,7 @@ dts_hclmgr_usage() {
   fi
 
   printf "%s\n" "Usage:"
-  printf "  dts-hclmgr COMMAND\n"
+  printf "  dts-hclmgr [OPTIONS] COMMAND\n"
   printf "  dts-hclmgr [COMMAND] --help | -h\n"
   printf "  dts-hclmgr --version | -v\n"
   echo
@@ -43,6 +43,12 @@ dts_hclmgr_usage() {
   # :command.long_usage
   if [[ -n $long_usage ]]; then
     printf "%s\n" "Options:"
+
+    # :command.usage_flags
+    # :flag.usage
+    printf "  %s\n" "--force, -f"
+    printf "    Ignore warning that directory with logs already exist.\n"
+    echo
 
     # :command.usage_fixed_flags
     printf "  %s\n" "--help, -h"
@@ -404,6 +410,14 @@ parse_requirements() {
         long_usage=yes
         dts_hclmgr_usage
         exit
+        ;;
+
+      # :flag.case
+      --force | -f)
+
+        # :flag.case_no_arg
+        args['--force']=1
+        shift
         ;;
 
       *)

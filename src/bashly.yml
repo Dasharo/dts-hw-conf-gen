@@ -50,3 +50,9 @@ commands:
 
   examples:
   - dts-hclmgr mb report.tar.gz
+
+flags:
+  - long: --force
+    short: -f
+    help: Ignore warning that directory with logs already exist.
+    default: false
