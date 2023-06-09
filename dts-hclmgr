@@ -50,6 +50,11 @@ dts_hclmgr_usage() {
     printf "    Ignore warning that directory with logs already exist.\n"
     echo
 
+    # :flag.usage
+    printf "  %s\n" "--quiet, -q"
+    printf "    Do no throw errors while parsin HCLs.\n"
+    echo
+
     # :command.usage_fixed_flags
     printf "  %s\n" "--help, -h"
     printf "    Show this help\n"
@@ -336,6 +341,25 @@ perform_extraction() {
     tar -xzf "$hcl_report" -C "$dir_name"
 }
 
+extract_lookup_string_from_decode_dimms() {
+	local bank_number="$1"
+	local file_contents="$2"
+	local lookup_string="$3"
+
+	# Find the line number of the given bank line
+	bank_line_number=$(echo "$file_contents" | awk -v bank="$bank_number" '/bank/ && $3 == bank {print NR}')
+
+	# Find the first occurrence of lookup string after the given bank line
+	match_line=$(echo "$file_contents" | awk -v line="$bank_line_number" 'NR > line && /'"$lookup_string"'/ {print NR; exit}')
+
+	lookup_string_extracted=$(echo "$file_contents" | awk "NR == $match_line")
+
+	restul_tmp=$(echo "$lookup_string_extracted" | awk -F "$lookup_string" '{print $2}')
+
+	# Trim leading and trailing whitespace
+	echo $(echo "$restul_tmp" | awk '{$1=$1;print}')
+}
+
 # :command.command_functions
 # :command.function
 dts_hclmgr_cpu_command() {
@@ -343,6 +367,7 @@ dts_hclmgr_cpu_command() {
   # Variable containing the path to the tar.gz file
   hcl_report=${args[hcl_report]}
   force=${args[--force]}
+  quiet=${args[--quiet]}
 
   # Extract the directory name from the file path
   dir_name=$(basename "$hcl_report" .tar.gz)
@@ -371,10 +396,61 @@ dts_hclmgr_cpu_command() {
 # :command.function
 dts_hclmgr_memory_command() {
   # src/memory_command.sh
-  echo "# this file is located in 'src/memory_command.sh'"
-  echo "# code for 'dts-hclmgr memory' goes here"
-  echo "# you can edit it freely and regenerate (it will not be overwritten)"
-  inspect_args
+  # Variable containing the path to the tar.gz file
+  hcl_report=${args[hcl_report]}
+  force=${args[--force]}
+  quiet=${args[--quiet]}
+
+  # Extract the directory name from the file path
+  dir_name=$(basename "$hcl_report" .tar.gz)
+
+  perform_extraction "$dir_name" "$force" "$hcl_report"
+
+  # Extract the Dasharo Version using the function
+  dasharo_version=$(extract_dasharo_version "$dir_name/logs/dmidecode.log")
+
+  if [ ! -n "$dasharo_version" ];then
+  	if [ "$quiet" != "1" ]; then
+  		echo "ERROR: Vendor BIOS HCL"
+  	fi
+  	exit 1
+  fi
+
+  # File containing the decode-dimms
+  decodedimms_file="$dir_name/logs/decode-dimms.log"
+
+  if [ ! -f "$decodedimms_file" ]; then
+  	if [ "$quiet" != "1" ]; then
+  		echo "ERROR: Decode DIMMs does not extist: $decodedimms_file"
+  	fi
+  	exit 1
+  fi
+
+  file_contents=$(< $decodedimms_file)
+
+  num_modules=$(grep -oP "(?<=Number of SDRAM DIMMs detected and decoded: )\d+" "$decodedimms_file")
+  # Loop through each bank
+  for ((bank=1; bank<=num_modules; bank++)); do
+
+    module_manufacturer=$(extract_lookup_string_from_decode_dimms $bank "$file_contents" "Module Manufacturer")
+    part_num=$(extract_lookup_string_from_decode_dimms $bank "$file_contents" "Part Number")
+    size=$(extract_lookup_string_from_decode_dimms $bank "$file_contents" "Size")
+    mem_type=$(extract_lookup_string_from_decode_dimms $bank "$file_contents" "Fundamental Memory type")
+    speed=$(extract_lookup_string_from_decode_dimms $bank "$file_contents" "Maximum module speed")
+
+    case $num_modules in
+      1)
+        conf="&#10004/-/-";;
+      2)
+        conf="-/&#10004/-";;
+      4)
+        conf="-/-/&#10004";;
+      *)
+        conf="unknown"
+    esac
+
+  	echo "| $module_manufacturer | $part_num | $size | $mem_type | $speed | $conf | $dasharo_version | Dasharo HCL report |"
+  done
 
 }
 
@@ -419,6 +495,14 @@ parse_requirements() {
 
         # :flag.case_no_arg
         args['--force']=1
+        shift
+        ;;
+
+      # :flag.case
+      --quiet | -q)
+
+        # :flag.case_no_arg
+        args['--quiet']=1
         shift
         ;;
 
