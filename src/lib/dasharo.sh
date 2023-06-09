@@ -39,3 +39,21 @@ perform_extraction() {
     tar -xzf "$hcl_report" -C "$dir_name"
 }
 
+extract_lookup_string_from_decode_dimms() {
+	local bank_number="$1"
+	local file_contents="$2"
+	local lookup_string="$3"
+
+	# Find the line number of the given bank line
+	bank_line_number=$(echo "$file_contents" | awk -v bank="$bank_number" '/bank/ && $3 == bank {print NR}')
+	
+	# Find the first occurrence of lookup string after the given bank line
+	match_line=$(echo "$file_contents" | awk -v line="$bank_line_number" 'NR > line && /'"$lookup_string"'/ {print NR; exit}')
+	
+	lookup_string_extracted=$(echo "$file_contents" | awk "NR == $match_line")
+	
+	restul_tmp=$(echo "$lookup_string_extracted" | awk -F "$lookup_string" '{print $2}')
+	
+	# Trim leading and trailing whitespace
+	echo $(echo "$restul_tmp" | awk '{$1=$1;print}')
+}
