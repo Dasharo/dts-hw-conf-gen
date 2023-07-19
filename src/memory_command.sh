@@ -38,7 +38,6 @@ for ((bank=1; bank<=num_modules; bank++)); do
   module_manufacturer=$(extract_lookup_string_from_decode_dimms $bank "$file_contents" "Module Manufacturer")
   part_num=$(extract_lookup_string_from_decode_dimms $bank "$file_contents" "Part Number")
   size=$(extract_lookup_string_from_decode_dimms $bank "$file_contents" "Size")
-  mem_type=$(extract_lookup_string_from_decode_dimms $bank "$file_contents" "Fundamental Memory type")
   speed=$(extract_lookup_string_from_decode_dimms $bank "$file_contents" "Maximum module speed")
 
   case $num_modules in
@@ -52,6 +51,6 @@ for ((bank=1; bank<=num_modules; bank++)); do
       conf="unknown"
   esac
 
-	echo "| $module_manufacturer | $part_num | $size | $mem_type | $speed | $conf | $dasharo_version | Dasharo HCL report |"
+	echo "| $module_manufacturer | $part_num | $size | $speed | $conf | $dasharo_version | Dasharo HCL report |"
 done
 
