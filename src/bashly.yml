@@ -1,0 +1,62 @@
+name: dts-hclmgr
+help: Dasharo Tools Suite Hardware Compatibility List Manager
+version: 0.1.0
+
+commands:
+- name: cpu
+  alias: c
+  help: Generate CPU compatibility list documentation for Dasharo Universe website.
+
+  args:
+  - name: hcl_report
+    required: true
+    help: Dashsro HCL Report in *.tar.gz package.
+
+  examples:
+  - dts-hclmgr cpu report.tar.gz
+
+- name: memory
+  alias: m
+  help: Generate memory compatibility list documentation for Dasharo Universe website.
+
+  args:
+  - name: hcl_report
+    required: true
+    help: Dashsro HCL Report in *.tar.gz package.
+
+  examples:
+  - dts-hclmgr memory report.tar.gz
+
+- name: gpu
+  alias: g
+  help: Generate GPU compatibility list documentation for Dasharo Universe website.
+
+  args:
+  - name: hcl_report
+    required: true
+    help: Dashsro HCL Report in *.tar.gz package.
+
+  examples:
+  - dts-hclmgr gpu report.tar.gz
+
+- name: mainboard
+  alias: mb
+  help: Generate mainboard compatibility list documentation for Dasharo Universe website.
+
+  args:
+  - name: hcl_report
+    required: true
+    help: Dashsro HCL Report in *.tar.gz package.
+
+  examples:
+  - dts-hclmgr mb report.tar.gz
+
+flags:
+  - long: --force
+    short: -f
+    help: Ignore warning that directory with logs already exist.
+    default: false
+  - long: --quiet
+    short: -q
+    help: Do no throw errors while parsin HCLs.
+    default: false
