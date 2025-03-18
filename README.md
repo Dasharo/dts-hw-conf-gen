@@ -14,17 +14,48 @@ use following snippets:
 
 ## Dasharo CPU HCL generation
 
+1. Download the `dasharo_hcl_reports` folder available on [Cloud](https://cloud.3mdeb.com/index.php/f/467774) 
+and unzip it.
+1. Clone the `dts-hw-conf-gen` repository.
+1. Copy the `dts-hclmgr` file from the cloned repository.
+1. Move the copied file to the downloaded `dasharo_hcl_reports` folder.
+1. While inside this folder, run the following command:
+
 ```bash
-unzip -o /tmp/filename.zip && find . -name "platform_name_prefix*.tar.gz" -print0 | xargs -0 -n1 bash -c './dts-hclmgr cpu "$0"'
+find . -name "Micro-Star_International_Co.,_Ltd._MS-7E06*.tar.gz" -print0 | xargs -0 -n1 bash -c './dts-hclmgr cpu "$0"'
 ```
+
+The command will also extract the specified files into the folder.
+
+1. Expected output:
+```bash
+| 12th Gen Intel(R) Core(TM) i5-12600K | v1.0.0 | Dasharo HCL Report |
+| 12th Gen Intel(R) Core(TM) i5-12600K | v1.0.0 | Dasharo HCL Report |
+| 12th Gen Intel(R) Core(TM) i5-12600K | v1.0.0 | Dasharo HCL Report |
+| 12th Gen Intel(R) Core(TM) i5-12600K | v1.0.0 | Dasharo HCL Report |
+| 12th Gen Intel(R) Core(TM) i5-12600K | v1.0.0 | Dasharo HCL Report |
+| 12th Gen Intel(R) Core(TM) i5-12600K | v1.0.0 | Dasharo HCL Report |
+| 12th Gen Intel(R) Core(TM) i7-12700K | v1.0.0 | Dasharo HCL Report |
+| 12th Gen Intel(R) Core(TM) i7-12700K | v1.0.0 | Dasharo HCL Report |
+| 12th Gen Intel(R) Core(TM) i5-12400 | v1.0.0 | Dasharo HCL Report |
+| 12th Gen Intel(R) Core(TM) i5-12600K | v1.1.0 | Dasharo HCL Report |
+| 12th Gen Intel(R) Core(TM) i5-12600K | v1.1.0 | Dasharo HCL Report |
+```
+
+1. Copy the generated list to a sheet and sort it. 
+1. Delete duplicated entries.
+1. Check which entries are missing in [Dasharo HCL
+   Documentation](https://docs.dasharo.com/unified/msi/hcl/) and update the list
+   accordingly.
+1. Update date of the hcl report in the documentation.
 
 Example  `platform_name_prefix` for Dasharo supported platforms:
 
 * `ASUS_KGPE-D16`
 * `Dell_Inc._OptiPlex_9010`
 * `Emulation_QEMU_x86_q35_ich9`
-* `Micro-Star_International_Co.,_Ltd._MS-7D25`
-* `Micro-Star_International_Co.,_Ltd._MS-7E06`
+* `Micro-Star_International_Co.,_Ltd._MS-7D25` (MSI PRO Z690)
+* `Micro-Star_International_Co.,_Ltd._MS-7E06` (MSI PRO Z790-P WIFI)
 * `Notebook_NS50_70MU`
 * `Notebook_NS5x_NS7xPU`
 * `Notebook_NV4XMB,ME,MZ`
