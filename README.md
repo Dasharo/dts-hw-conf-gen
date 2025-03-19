@@ -14,12 +14,11 @@ use following snippets:
 
 ## Dasharo CPU HCL generation
 
-1. Download the `dasharo_hcl_reports` folder available on [Cloud](https://cloud.3mdeb.com/index.php/f/467774) 
-and unzip it.
+1. Download the `dasharo_hcl_reports` folder from 3mdeb's Cloud and unzip it.
 2. Clone the `dts-hw-conf-gen` repository.
-3. Copy the `dts-hclmgr` file from the cloned repository.
-4. Move the copied file to the downloaded `dasharo_hcl_reports` folder.
-5. While inside this folder, run the following command:
+3. Copy the `dts-hclmgr` file from the cloned repository to the
+   `dasharo_hcl_reports` folder.
+4. While inside this folder, run the following command:
 
 ```bash
 find . -name "Micro-Star_International_Co.,_Ltd._MS-7E06*.tar.gz" -print0 | xargs -0 -n1 bash -c './dts-hclmgr cpu "$0"'
@@ -27,7 +26,7 @@ find . -name "Micro-Star_International_Co.,_Ltd._MS-7E06*.tar.gz" -print0 | xarg
 
 The command will also extract the specified files into the folder.
 
-6. Expected output:
+5. Expected output:
 ```bash
 | 12th Gen Intel(R) Core(TM) i5-12600K | v1.0.0 | Dasharo HCL Report |
 | 12th Gen Intel(R) Core(TM) i5-12600K | v1.0.0 | Dasharo HCL Report |
@@ -42,12 +41,12 @@ The command will also extract the specified files into the folder.
 | 12th Gen Intel(R) Core(TM) i5-12600K | v1.1.0 | Dasharo HCL Report |
 ```
 
-7. Copy the generated list to a sheet and sort it. 
-8. Delete duplicated entries.
-9. Check which entries are missing in [Dasharo HCL
+6. Copy the generated list to a sheet and sort it. 
+7. Delete duplicated entries.
+8. Check which entries are missing in [Dasharo HCL
    Documentation](https://docs.dasharo.com/unified/msi/hcl/) and update the list
    accordingly.
-10. Update date of the hcl report in the documentation.
+9. Update date of the hcl report in the documentation.
 
 Example  `platform_name_prefix` for Dasharo supported platforms:
 
