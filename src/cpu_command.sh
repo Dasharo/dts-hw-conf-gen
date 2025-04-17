@@ -1,4 +1,6 @@
+#!/bin/bash
 # Variable containing the path to the tar.gz file
+# shellcheck disable=SC2154
 hcl_report=${args[hcl_report]}
 force=${args[--force]}
 quiet=${args[--quiet]}
@@ -17,10 +19,10 @@ cpuinfo_file="$dir_name/logs/cpuinfo.log"
 # Extract the CPU Model
 cpu_model=$(grep 'model name' "$cpuinfo_file" | head -1 | awk -F ': ' '{print $2}')
 
-# Define the compatiblity information source, for now it is always Dasharo HCL
+# Define the compatibility information source, for now it is always Dasharo HCL
 # Report
 source="Dasharo HCL Report"
 
-if [ -n "$dasharo_version" ];then
-	echo "| $cpu_model | $dasharo_version | $source |"
+if [ -n "$dasharo_version" ]; then
+  echo "| $cpu_model | $dasharo_version | $source |"
 fi
