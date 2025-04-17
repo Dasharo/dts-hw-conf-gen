@@ -38,8 +38,10 @@ perform_extraction() {
 
     # Unpack the tar.gz file into the directory
     if ! tar -xzf "$hcl_report" -C "$dir_name"; then
-      echo "Error: Failed to extract archive: $hcl_report"
-      return 1
+      if [ "$quiet" != "1" ]; then
+        echo "Error: Failed to extract archive: $hcl_report"
+      fi
+      exit 1
     fi
 }
 
