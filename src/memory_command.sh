@@ -32,7 +32,7 @@ fi
 
 file_contents=$(< "$decodedimms_file")
 
-num_modules=$(grep -oP "(?<=Number of SDRAM DIMMs detected and decoded: )\d+" "$decodedimms_file")
+num_modules=$(grep -oP "(?<=Number of SDRAM DIMMs detected and decoded: )\d+" "$decodedimms_file" || true)
 if [ -z "$num_modules" ]; then
   if [ "$quiet" != "1" ]; then
     echo "ERROR: No memory modules found"

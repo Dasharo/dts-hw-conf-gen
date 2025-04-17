@@ -7,8 +7,8 @@ extract_dasharo_version() {
   local dasharo_version
 
   dasharo_line=$(grep 'Version: Dasharo' "$dmidecode_file")
-  dasharo_version=$(echo "$dasharo_line" | awk -F' ' '{print $4}')
-
+  dasharo_version=$(echo "$dasharo_line" | awk '{print $4}')
+  
   echo "$dasharo_version"
 }
 
