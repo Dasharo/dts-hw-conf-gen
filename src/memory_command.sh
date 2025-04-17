@@ -13,7 +13,7 @@ perform_extraction "$dir_name" "$force" "$hcl_report"
 # Extract the Dasharo Version using the function
 dasharo_version=$(extract_dasharo_version "$dir_name/logs/dmidecode.log")
 
-if [ ! -n "$dasharo_version" ]; then
+if [ -z "$dasharo_version" ];then
   if [ "$quiet" != "1" ]; then
     echo "ERROR: Vendor BIOS HCL"
   fi
@@ -30,9 +30,20 @@ if [ ! -f "$decodedimms_file" ]; then
   exit 1
 fi
 
-file_contents=$(<$decodedimms_file)
+file_contents=$(< "$decodedimms_file")
 
 num_modules=$(grep -oP "(?<=Number of SDRAM DIMMs detected and decoded: )\d+" "$decodedimms_file")
+if [ -z "$num_modules" ]; then
+  if [ "$quiet" != "1" ]; then
+    echo "ERROR: No memory modules found"
+  fi
+  exit 1
+fi
+
+if [ "$quiet" != "1" ]; then
+  echo "Memory modules: $num_modules"
+fi
+
 # Loop through each bank
 for ((bank = 1; bank <= num_modules; bank++)); do
 
