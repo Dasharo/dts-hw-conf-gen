@@ -1,5 +1,6 @@
 #!/bin/bash
 # lib/dasharo.sh
+# shellcheck disable=SC2154
 
 extract_dasharo_version() {
   local dmidecode_file="$1"
@@ -7,7 +8,7 @@ extract_dasharo_version() {
   local dasharo_version
 
   dasharo_line=$(grep 'Version: Dasharo' "$dmidecode_file")
-  dasharo_version=$(echo "$dasharo_line" | awk -F' ' '{print $4}')
+  dasharo_version=$(echo "$dasharo_line" | awk '{print $4}')
 
   echo "$dasharo_version"
 }
@@ -37,7 +38,12 @@ perform_extraction() {
   mkdir -p "$dir_name"
 
   # Unpack the tar.gz file into the directory
-  tar -xzf "$hcl_report" -C "$dir_name"
+  if ! tar -xzf "$hcl_report" -C "$dir_name" >/dev/null 2>&1; then
+    if [ "$quiet" != "1" ]; then
+      echo "Error: Failed to extract archive: $hcl_report"
+    fi
+    exit 1
+  fi
 }
 
 extract_lookup_string_from_decode_dimms() {

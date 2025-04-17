@@ -269,6 +269,7 @@ inspect_args() {
 # src/lib/dasharo.sh
 #!/bin/bash
 # lib/dasharo.sh
+# shellcheck disable=SC2154
 
 extract_dasharo_version() {
   local dmidecode_file="$1"
@@ -276,7 +277,7 @@ extract_dasharo_version() {
   local dasharo_version
 
   dasharo_line=$(grep 'Version: Dasharo' "$dmidecode_file")
-  dasharo_version=$(echo "$dasharo_line" | awk -F' ' '{print $4}')
+  dasharo_version=$(echo "$dasharo_line" | awk '{print $4}')
 
   echo "$dasharo_version"
 }
@@ -306,7 +307,12 @@ perform_extraction() {
   mkdir -p "$dir_name"
 
   # Unpack the tar.gz file into the directory
-  tar -xzf "$hcl_report" -C "$dir_name"
+  if ! tar -xzf "$hcl_report" -C "$dir_name" >/dev/null 2>&1; then
+    if [ "$quiet" != "1" ]; then
+      echo "Error: Failed to extract archive: $hcl_report"
+    fi
+    exit 1
+  fi
 }
 
 extract_lookup_string_from_decode_dimms() {
@@ -384,7 +390,7 @@ dts_hclmgr_memory_command() {
   # Extract the Dasharo Version using the function
   dasharo_version=$(extract_dasharo_version "$dir_name/logs/dmidecode.log")
 
-  if [ ! -n "$dasharo_version" ]; then
+  if [ -z "$dasharo_version" ]; then
     if [ "$quiet" != "1" ]; then
       echo "ERROR: Vendor BIOS HCL"
     fi
@@ -401,9 +407,23 @@ dts_hclmgr_memory_command() {
     exit 1
   fi
 
-  file_contents=$(<$decodedimms_file)
+  file_contents=$(<"$decodedimms_file")
 
-  num_modules=$(grep -oP "(?<=Number of SDRAM DIMMs detected and decoded: )\d+" "$decodedimms_file")
+  num_modules=$(grep -oP "(?<=Number of SDRAM DIMMs detected and decoded: )\d+" "$decodedimms_file" || true)
+  if [ -z "$num_modules" ]; then
+    if [ "$quiet" != "1" ]; then
+      echo "ERROR: No memory modules found"
+    fi
+    exit 1
+  fi
+
+  if [ "$quiet" != "1" ]; then
+    echo "Memory modules: $num_modules"
+  fi
+
+  # Declare an associative array to act as the buffer
+  declare -A printed_entries
+
   # Loop through each bank
   for ((bank = 1; bank <= num_modules; bank++)); do
 
@@ -427,7 +447,15 @@ dts_hclmgr_memory_command() {
       ;;
     esac
 
-    echo "| $module_manufacturer | $part_num | $size | $speed | $conf | $dasharo_version | Dasharo HCL report |"
+    entry=$"| $module_manufacturer | $part_num | $size | $speed | $conf | $dasharo_version | Dasharo HCL report |"
+
+    if [ -n "${printed_entries[$entry]}" ]; then
+      continue
+    else
+      printed_entries["$entry"]=1
+      echo "$entry"
+    fi
+
   done
 
 }
