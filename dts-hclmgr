@@ -305,13 +305,13 @@ perform_extraction() {
   # Create the directory
   mkdir -p "$dir_name"
 
-    # Unpack the tar.gz file into the directory
-    if ! tar -xzf "$hcl_report" -C "$dir_name" >/dev/null 2>&1; then
-      if [ "$quiet" != "1" ]; then
-        echo "Error: Failed to extract archive: $hcl_report"
-      fi
-      exit 1
+  # Unpack the tar.gz file into the directory
+  if ! tar -xzf "$hcl_report" -C "$dir_name" >/dev/null 2>&1; then
+    if [ "$quiet" != "1" ]; then
+      echo "Error: Failed to extract archive: $hcl_report"
     fi
+    exit 1
+  fi
 }
 
 extract_lookup_string_from_decode_dimms() {
@@ -330,8 +330,7 @@ extract_lookup_string_from_decode_dimms() {
   restul_tmp=$(echo "$lookup_string_extracted" | awk -F "$lookup_string" '{print $2}')
 
   # Trim leading and trailing whitespace
-  cleaned=$(echo "$restul_tmp" | awk '{$1=$1;print}')
-  echo "$cleaned"
+  echo $(echo "$restul_tmp" | awk '{$1=$1;print}')
 }
 
 # :command.command_functions
@@ -389,7 +388,7 @@ dts_hclmgr_memory_command() {
   # Extract the Dasharo Version using the function
   dasharo_version=$(extract_dasharo_version "$dir_name/logs/dmidecode.log")
 
-  if [ -z "$dasharo_version" ];then
+  if [ -z "$dasharo_version" ]; then
     if [ "$quiet" != "1" ]; then
       echo "ERROR: Vendor BIOS HCL"
     fi
@@ -406,7 +405,7 @@ dts_hclmgr_memory_command() {
     exit 1
   fi
 
-  file_contents=$(< "$decodedimms_file")
+  file_contents=$(<"$decodedimms_file")
 
   num_modules=$(grep -oP "(?<=Number of SDRAM DIMMs detected and decoded: )\d+" "$decodedimms_file" || true)
   if [ -z "$num_modules" ]; then
@@ -429,18 +428,18 @@ dts_hclmgr_memory_command() {
     speed=$(extract_lookup_string_from_decode_dimms $bank "$file_contents" "Maximum module speed")
 
     case $num_modules in
-    1)
-      conf="&#10004/-/-"
-      ;;
-    2)
-      conf="-/&#10004/-"
-      ;;
-    4)
-      conf="-/-/&#10004"
-      ;;
-    *)
-      conf="unknown"
-      ;;
+      1)
+        conf="&#10004/-/-"
+        ;;
+      2)
+        conf="-/&#10004/-"
+        ;;
+      4)
+        conf="-/-/&#10004"
+        ;;
+      *)
+        conf="unknown"
+        ;;
     esac
 
     echo "| $module_manufacturer | $part_num | $size | $speed | $conf | $dasharo_version | Dasharo HCL report |"
@@ -481,7 +480,7 @@ dts_hclmgr_gpu_command() {
 
   if [ ! -f "$lspci_file" ]; then
     if [ "$quiet" != "1" ]; then
-      echo "ERROR: lspci does not exist: $lspci_file"
+      echo "ERROR: lspci does not extist: $lspci_file"
     fi
     exit 1
   fi

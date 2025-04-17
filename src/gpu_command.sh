@@ -27,7 +27,7 @@ lspci_file="$dir_name/logs/lspci.log"
 
 if [ ! -f "$lspci_file" ]; then
   if [ "$quiet" != "1" ]; then
-    echo "ERROR: lspci does not exist: $lspci_file"
+    echo "ERROR: lspci does not extist: $lspci_file"
   fi
   exit 1
 fi

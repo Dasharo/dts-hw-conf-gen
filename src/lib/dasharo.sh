@@ -8,7 +8,7 @@ extract_dasharo_version() {
 
   dasharo_line=$(grep 'Version: Dasharo' "$dmidecode_file")
   dasharo_version=$(echo "$dasharo_line" | awk '{print $4}')
-  
+
   echo "$dasharo_version"
 }
 
@@ -36,13 +36,13 @@ perform_extraction() {
   # Create the directory
   mkdir -p "$dir_name"
 
-    # Unpack the tar.gz file into the directory
-    if ! tar -xzf "$hcl_report" -C "$dir_name" >/dev/null 2>&1; then
-      if [ "$quiet" != "1" ]; then
-        echo "Error: Failed to extract archive: $hcl_report"
-      fi
-      exit 1
+  # Unpack the tar.gz file into the directory
+  if ! tar -xzf "$hcl_report" -C "$dir_name" >/dev/null 2>&1; then
+    if [ "$quiet" != "1" ]; then
+      echo "Error: Failed to extract archive: $hcl_report"
     fi
+    exit 1
+  fi
 }
 
 extract_lookup_string_from_decode_dimms() {
@@ -61,6 +61,5 @@ extract_lookup_string_from_decode_dimms() {
   restul_tmp=$(echo "$lookup_string_extracted" | awk -F "$lookup_string" '{print $2}')
 
   # Trim leading and trailing whitespace
-  cleaned=$(echo "$restul_tmp" | awk '{$1=$1;print}')
-  echo "$cleaned"
+  echo $(echo "$restul_tmp" | awk '{$1=$1;print}')
 }
