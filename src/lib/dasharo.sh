@@ -1,13 +1,14 @@
+#!/bin/bash
 # lib/dasharo.sh
 
 extract_dasharo_version() {
   local dmidecode_file="$1"
   local dasharo_line
   local dasharo_version
-  
+
   dasharo_line=$(grep 'Version: Dasharo' "$dmidecode_file")
   dasharo_version=$(echo "$dasharo_line" | awk -F' ' '{print $4}')
-  
+
   echo "$dasharo_version"
 }
 
@@ -46,14 +47,15 @@ extract_lookup_string_from_decode_dimms() {
 
 	# Find the line number of the given bank line
 	bank_line_number=$(echo "$file_contents" | awk -v bank="$bank_number" '/bank/ && $3 == bank {print NR}')
-	
+
 	# Find the first occurrence of lookup string after the given bank line
 	match_line=$(echo "$file_contents" | awk -v line="$bank_line_number" 'NR > line && /'"$lookup_string"'/ {print NR; exit}')
-	
+
 	lookup_string_extracted=$(echo "$file_contents" | awk "NR == $match_line")
-	
+
 	restul_tmp=$(echo "$lookup_string_extracted" | awk -F "$lookup_string" '{print $2}')
-	
+
 	# Trim leading and trailing whitespace
-	echo $(echo "$restul_tmp" | awk '{$1=$1;print}')
+	cleaned=$(echo "$restul_tmp" | awk '{$1=$1;print}')
+  echo "$cleaned"
 }

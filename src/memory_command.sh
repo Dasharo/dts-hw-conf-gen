@@ -1,4 +1,6 @@
+#!/bin/bash
 # Variable containing the path to the tar.gz file
+# shellcheck disable=SC2154
 hcl_report=${args[hcl_report]}
 force=${args[--force]}
 quiet=${args[--quiet]}
@@ -24,7 +26,7 @@ decodedimms_file="$dir_name/logs/decode-dimms.log"
 
 if [ ! -f "$decodedimms_file" ]; then
 	if [ "$quiet" != "1" ]; then
-		echo "ERROR: Decode DIMMs does not extist: $decodedimms_file"
+		echo "ERROR: Decode DIMMs does not exist: $decodedimms_file"
 	fi
 	exit 1
 fi
@@ -53,4 +55,3 @@ for ((bank=1; bank<=num_modules; bank++)); do
 
 	echo "| $module_manufacturer | $part_num | $size | $speed | $conf | $dasharo_version | Dasharo HCL report |"
 done
-

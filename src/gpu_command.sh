@@ -1,4 +1,6 @@
+#!/bin/bash
 # Variable containing the path to the tar.gz file
+# shellcheck disable=SC2154
 hcl_report=${args[hcl_report]}
 force=${args[--force]}
 quiet=${args[--quiet]}
@@ -25,7 +27,7 @@ lspci_file="$dir_name/logs/lspci.log"
 
 if [ ! -f "$lspci_file" ]; then
 	if [ "$quiet" != "1" ]; then
-		echo "ERROR: lspci does not extist: $lspci_file"
+		echo "ERROR: lspci does not exist: $lspci_file"
 	fi
 	exit 1
 fi
@@ -45,7 +47,7 @@ fi
 echo "$vga_entries" | while IFS= read -r entry; do
   # Extract the GPU Vendor
   gpu_vendor=$(echo "$entry" | awk -F ': ' '{print $2}'|cut -d'[' -f1|tr -d '\n')
-  
+
   # Check if the gpu_vendor starts with "NVIDIA"
   if [[ "$gpu_vendor" == NVIDIA* ]]; then
       # Extract the code name (third word in the string)
@@ -73,9 +75,9 @@ echo "$vga_entries" | while IFS= read -r entry; do
   else
     echo $entry
   fi
-  
+
   pcid=$(echo "$entry"|grep -oP '\[\K[0-9a-f]{4}:[0-9a-f]{4}')
-  
+
   echo "| $gpu_vendor | $gpu_code_name | $gpu_model | $pcid | $mgt | Dasharo HCL report |"
 
 done

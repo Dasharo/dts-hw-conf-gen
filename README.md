@@ -1,5 +1,6 @@
-Dasharo Tool Suite HCL manager
-------------------------------
+# Dasharo Tool Suite HCL manager
+
+---
 
 DTS HCL manager is used to generate entries to Dasharo HCL
 CPU/memory/mainboard/GPU documentation based on Dasharo HCL reports.
@@ -20,28 +21,29 @@ use following snippets:
    `dasharo_hcl_reports` folder.
 4. While inside this folder, run the following command:
 
-```bash
-find . -name "Micro-Star_International_Co.,_Ltd._MS-7E06*.tar.gz" -print0 | xargs -0 -n1 bash -c './dts-hclmgr cpu "$0"'
-```
+    ```bash
+    find . -name "Micro-Star_International_Co.,_Ltd._MS-7E06*.tar.gz" -print0 | xargs -0 -n1 bash -c './dts-hclmgr cpu "$0"'
+    ```
 
-The command will also extract the specified files into the folder.
+    The command will also extract the specified files into the folder.
 
 5. Expected output:
-```bash
-| 12th Gen Intel(R) Core(TM) i5-12600K | v1.0.0 | Dasharo HCL Report |
-| 12th Gen Intel(R) Core(TM) i5-12600K | v1.0.0 | Dasharo HCL Report |
-| 12th Gen Intel(R) Core(TM) i5-12600K | v1.0.0 | Dasharo HCL Report |
-| 12th Gen Intel(R) Core(TM) i5-12600K | v1.0.0 | Dasharo HCL Report |
-| 12th Gen Intel(R) Core(TM) i5-12600K | v1.0.0 | Dasharo HCL Report |
-| 12th Gen Intel(R) Core(TM) i5-12600K | v1.0.0 | Dasharo HCL Report |
-| 12th Gen Intel(R) Core(TM) i7-12700K | v1.0.0 | Dasharo HCL Report |
-| 12th Gen Intel(R) Core(TM) i7-12700K | v1.0.0 | Dasharo HCL Report |
-| 12th Gen Intel(R) Core(TM) i5-12400 | v1.0.0 | Dasharo HCL Report |
-| 12th Gen Intel(R) Core(TM) i5-12600K | v1.1.0 | Dasharo HCL Report |
-| 12th Gen Intel(R) Core(TM) i5-12600K | v1.1.0 | Dasharo HCL Report |
-```
 
-6. Copy the generated list to a sheet and sort it. 
+    ```bash
+    | 12th Gen Intel(R) Core(TM) i5-12600K | v1.0.0 | Dasharo HCL Report |
+    | 12th Gen Intel(R) Core(TM) i5-12600K | v1.0.0 | Dasharo HCL Report |
+    | 12th Gen Intel(R) Core(TM) i5-12600K | v1.0.0 | Dasharo HCL Report |
+    | 12th Gen Intel(R) Core(TM) i5-12600K | v1.0.0 | Dasharo HCL Report |
+    | 12th Gen Intel(R) Core(TM) i5-12600K | v1.0.0 | Dasharo HCL Report |
+    | 12th Gen Intel(R) Core(TM) i5-12600K | v1.0.0 | Dasharo HCL Report |
+    | 12th Gen Intel(R) Core(TM) i7-12700K | v1.0.0 | Dasharo HCL Report |
+    | 12th Gen Intel(R) Core(TM) i7-12700K | v1.0.0 | Dasharo HCL Report |
+    | 12th Gen Intel(R) Core(TM) i5-12400 | v1.0.0 | Dasharo HCL Report |
+    | 12th Gen Intel(R) Core(TM) i5-12600K | v1.1.0 | Dasharo HCL Report |
+    | 12th Gen Intel(R) Core(TM) i5-12600K | v1.1.0 | Dasharo HCL Report |
+    ```
+
+6. Copy the generated list to a sheet and sort it.
 7. Delete duplicated entries.
 8. Check which entries are missing in [Dasharo HCL
    Documentation](https://docs.dasharo.com/unified/msi/hcl/) and update the list

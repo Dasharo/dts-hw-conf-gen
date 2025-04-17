@@ -58,5 +58,5 @@ flags:
     default: false
   - long: --quiet
     short: -q
-    help: Do no throw errors while parsin HCLs.
+    help: Do no throw errors while parsing HCLs.
     default: false
