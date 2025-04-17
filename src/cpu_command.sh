@@ -23,6 +23,6 @@ cpu_model=$(grep 'model name' "$cpuinfo_file" | head -1 | awk -F ': ' '{print $2
 # Report
 source="Dasharo HCL Report"
 
-if [ -n "$dasharo_version" ]; then
-  echo "| $cpu_model | $dasharo_version | $source |"
+if [ -n "$dasharo_version" ];then
+	echo "| $cpu_model | $dasharo_version | $source |"
 fi
