@@ -305,8 +305,11 @@ perform_extraction() {
   # Create the directory
   mkdir -p "$dir_name"
 
-  # Unpack the tar.gz file into the directory
-  tar -xzf "$hcl_report" -C "$dir_name"
+    # Unpack the tar.gz file into the directory
+    if ! tar -xzf "$hcl_report" -C "$dir_name"; then
+      echo "Error: Failed to extract archive: $hcl_report"
+      return 1
+    fi
 }
 
 extract_lookup_string_from_decode_dimms() {
@@ -540,10 +543,10 @@ parse_requirements() {
   while [[ $# -gt 0 ]]; do
     key="$1"
     case "$key" in
-    --version | -v)
-      version_command
-      exit
-      ;;
+      --version | -v)
+        version_command
+        exit
+        ;;
 
     --help | -h)
       long_usage=yes
@@ -650,11 +653,11 @@ dts_hclmgr_cpu_parse_requirements() {
   while [[ $# -gt 0 ]]; do
     key="$1"
     case "$key" in
-    --help | -h)
-      long_usage=yes
-      dts_hclmgr_cpu_usage
-      exit
-      ;;
+      --help | -h)
+        long_usage=yes
+        dts_hclmgr_cpu_usage
+        exit
+        ;;
 
     *)
       break
@@ -708,11 +711,11 @@ dts_hclmgr_memory_parse_requirements() {
   while [[ $# -gt 0 ]]; do
     key="$1"
     case "$key" in
-    --help | -h)
-      long_usage=yes
-      dts_hclmgr_memory_usage
-      exit
-      ;;
+      --help | -h)
+        long_usage=yes
+        dts_hclmgr_memory_usage
+        exit
+        ;;
 
     *)
       break
@@ -766,11 +769,11 @@ dts_hclmgr_gpu_parse_requirements() {
   while [[ $# -gt 0 ]]; do
     key="$1"
     case "$key" in
-    --help | -h)
-      long_usage=yes
-      dts_hclmgr_gpu_usage
-      exit
-      ;;
+      --help | -h)
+        long_usage=yes
+        dts_hclmgr_gpu_usage
+        exit
+        ;;
 
     *)
       break
@@ -824,11 +827,11 @@ dts_hclmgr_mainboard_parse_requirements() {
   while [[ $# -gt 0 ]]; do
     key="$1"
     case "$key" in
-    --help | -h)
-      long_usage=yes
-      dts_hclmgr_mainboard_usage
-      exit
-      ;;
+      --help | -h)
+        long_usage=yes
+        dts_hclmgr_mainboard_usage
+        exit
+        ;;
 
     *)
       break

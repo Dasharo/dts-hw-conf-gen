@@ -36,8 +36,11 @@ perform_extraction() {
   # Create the directory
   mkdir -p "$dir_name"
 
-  # Unpack the tar.gz file into the directory
-  tar -xzf "$hcl_report" -C "$dir_name"
+    # Unpack the tar.gz file into the directory
+    if ! tar -xzf "$hcl_report" -C "$dir_name"; then
+      echo "Error: Failed to extract archive: $hcl_report"
+      return 1
+    fi
 }
 
 extract_lookup_string_from_decode_dimms() {
