@@ -44,6 +44,9 @@ if [ "$quiet" != "1" ]; then
   echo "Memory modules: $num_modules"
 fi
 
+# Declare an associative array to act as the buffer
+declare -A printed_entries
+
 # Loop through each bank
 for ((bank = 1; bank <= num_modules; bank++)); do
 
@@ -67,5 +70,13 @@ for ((bank = 1; bank <= num_modules; bank++)); do
     ;;
   esac
 
-  echo "| $module_manufacturer | $part_num | $size | $speed | $conf | $dasharo_version | Dasharo HCL report |"
+  entry=$"| $module_manufacturer | $part_num | $size | $speed | $conf | $dasharo_version | Dasharo HCL report |"
+
+  if [ -n "${printed_entries[$entry]}" ]; then
+    continue
+  else
+    printed_entries["$entry"]=1
+    echo "$entry"
+  fi
+
 done
