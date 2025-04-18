@@ -47,6 +47,21 @@ dts_hclmgr_usage() {
     printf "    Do no throw errors while parsing HCLs.\n"
     echo
 
+    # :flag.usage
+    printf "  %s\n" "--update, -u"
+    printf "    Update table in dasharo docs.\n"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--checkout-docs"
+    printf "    Checkout the dasharo docs repository\n"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--debug, -d"
+    printf "    Enable debug output\n"
+    echo
+
     # :command.usage_fixed_flags
     printf "  %s\n" "--help, -h"
     printf "    Show this help\n"
@@ -282,6 +297,22 @@ extract_dasharo_version() {
   echo "$dasharo_version"
 }
 
+extract_board_name() {
+  local dmidecode_file="$1"
+  local product_name
+
+  product_name=$(awk '
+  /^Handle .*DMI type 2,/ { in_base_board=1; next }
+  /^Handle / { in_base_board=0 }
+  in_base_board && /Product Name:/ {
+      sub(/^.*Product Name:[[:space:]]*/, "", $0)
+      print
+      exit
+  }' "$dmidecode_file")
+
+  echo "$product_name"
+}
+
 perform_extraction() {
   local dir_name=$1
   local force=$2
@@ -335,6 +366,75 @@ extract_lookup_string_from_decode_dimms() {
   echo "$cleaned"
 }
 
+# Return the appropriate HCL file path
+get_hcl_file_path() {
+  local board_name="$1"
+  local category="$2"
+  local base_path="docs/docs/resources/hcl/$category"
+
+  case "$board_name" in
+  "PRO Z690-A WIFI DDR4"*) echo "$base_path/pro-z690-a-wifi-ddr4.md" ;;
+  "PRO Z690-A WIFI"*) echo "$base_path/pro-z690-a-wifi.md" ;;
+  "PRO Z790-P WIFI DDR4"*) echo "$base_path/pro-z790-p-wifi-ddr4.md" ;;
+  "PRO Z790-P WIFI"*) echo "$base_path/pro-z790-p-wifi-ddr4.md" ;;
+  *)
+    echo "Error: Unknown or unsupported board: $board_name" >&2
+    return 1
+    ;;
+  esac
+}
+
+# Update the table section in an HCL file
+update_table() {
+  local hcl_file_path="$1"
+  shift
+  local new_rows=("$@")
+
+  [ "$debug" ] && echo "Updating table in: $hcl_file_path"
+
+  # Extract static content and table
+  head -n 4 "$hcl_file_path" >before.md
+
+  awk '/<!--start-->/ { flag=1; skip=2; next }
+       flag && skip > 0 { skip--; next }
+       /<!--end-->/ { flag=0 }
+       flag' "$hcl_file_path" >table.md
+
+  {
+    cat table.md
+    for row in "${new_rows[@]}"; do
+      printf "%s\n" "$row"
+    done
+  } | sort -u >table_sorted.md
+
+  if [[ ! -s table_sorted.md ]]; then
+    echo "Error: table_sorted.md is empty or missing" >&2
+    return 1
+  fi
+
+  {
+    cat before.md
+    cat table_sorted.md
+    echo "<!--end-->"
+  } >"${hcl_file_path}.new"
+
+  if ! cmp -s "$hcl_file_path" "${hcl_file_path}.new"; then
+    echo "Modified: $hcl_file_path"
+    diff_output=$(diff --color=always "$hcl_file_path" "${hcl_file_path}.new" || true)
+    [[ -n "$diff_output" ]] && echo "Diff:" && echo "$diff_output" && echo "End Diff"
+    echo "From #lines"
+    cat "${hcl_file_path}" | wc
+    echo "To #lines"
+    cat "${hcl_file_path}.new" | wc
+    mv "${hcl_file_path}.new" "$hcl_file_path"
+  else
+    echo "No changes made to $hcl_file_path"
+    rm -f "${hcl_file_path}.new"
+  fi
+
+  rm -f before.md table.md table_sorted.md
+}
+
 # :command.command_functions
 # :command.function
 dts_hclmgr_cpu_command() {
@@ -381,6 +481,8 @@ dts_hclmgr_memory_command() {
   hcl_report=${args[hcl_report]}
   force=${args[--force]}
   quiet=${args[--quiet]}
+  update=${args[--update]}
+  checkout_docs=${args[--checkout - docs]}
 
   # Extract the directory name from the file path
   dir_name=$(basename "$hcl_report" .tar.gz)
@@ -392,7 +494,7 @@ dts_hclmgr_memory_command() {
 
   if [ -z "$dasharo_version" ]; then
     if [ "$quiet" != "1" ]; then
-      echo "ERROR: Vendor BIOS HCL"
+      echo "ERROR: Vendor BIOS HCL" >&2
     fi
     exit 1
   fi
@@ -402,7 +504,7 @@ dts_hclmgr_memory_command() {
 
   if [ ! -f "$decodedimms_file" ]; then
     if [ "$quiet" != "1" ]; then
-      echo "ERROR: Decode DIMMs does not exist: $decodedimms_file"
+      echo "ERROR: Decode DIMMs does not exist: $decodedimms_file" >&2
     fi
     exit 1
   fi
@@ -412,17 +514,16 @@ dts_hclmgr_memory_command() {
   num_modules=$(grep -oP "(?<=Number of SDRAM DIMMs detected and decoded: )\d+" "$decodedimms_file" || true)
   if [ -z "$num_modules" ]; then
     if [ "$quiet" != "1" ]; then
-      echo "ERROR: No memory modules found"
+      echo "ERROR: No memory modules found" >&2
     fi
     exit 1
   fi
 
-  if [ "$quiet" != "1" ]; then
+  if [ "$debug" ]; then
     echo "Memory modules: $num_modules"
   fi
 
-  # Declare an associative array to act as the buffer
-  declare -A printed_entries
+  declare -a new_rows
 
   # Loop through each bank
   for ((bank = 1; bank <= num_modules; bank++)); do
@@ -447,16 +548,32 @@ dts_hclmgr_memory_command() {
       ;;
     esac
 
-    entry=$"| $module_manufacturer | $part_num | $size | $speed | $conf | $dasharo_version | Dasharo HCL report |"
+    entry="| $module_manufacturer | $part_num | $size | $speed | $conf | $dasharo_version | Dasharo HCL report |"
 
-    if [ -n "${printed_entries[$entry]}" ]; then
-      continue
-    else
-      printed_entries["$entry"]=1
-      echo "$entry"
-    fi
+    for row in "${new_rows[@]}"; do
+      if [[ "$row" == "$entry" ]]; then
+        continue
+      fi
+    done
+    new_rows+=("$entry")
 
   done
+
+  if [ "$update" ]; then
+
+    if [ "$checkout_docs" ]; then
+      # Update docs/ submodule
+      git submodule update --init
+    fi
+
+    board_name=$(extract_board_name "$dir_name/logs/dmidecode.log")
+    hcl_file_path=$(get_hcl_file_path "$board_name" "memory")
+
+    [ "$debug" ] && echo "File with HCL table: $hcl_file_path"
+
+    update_table "$hcl_file_path" "${new_rows[@]}"
+
+  fi
 
 }
 
@@ -592,6 +709,30 @@ parse_requirements() {
 
       # :flag.case_no_arg
       args['--quiet']=1
+      shift
+      ;;
+
+    # :flag.case
+    --update | -u)
+
+      # :flag.case_no_arg
+      args['--update']=1
+      shift
+      ;;
+
+    # :flag.case
+    --checkout-docs)
+
+      # :flag.case_no_arg
+      args['--checkout-docs']=1
+      shift
+      ;;
+
+    # :flag.case
+    --debug | -d)
+
+      # :flag.case_no_arg
+      args['--debug']=1
       shift
       ;;
 

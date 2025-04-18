@@ -69,3 +69,70 @@ Example  `platform_name_prefix` for Dasharo supported platforms:
 * `Protectli_VP4630`
 * `Protectli_VP4670`
 * `Protectli_VP6670`
+
+## Dasharo Memory HCL generation
+
+1. Do the same preparations as for CPU HCL.
+
+2. Example command:
+
+    ```bash
+    find . -name "Micro-Star_International_Co.,_Ltd.*.tar.gz" -print0 | xargs -0 -n1 bash -c './dts-hclmgr --force  memory "$0"'
+    ```
+
+  Note: it is possible to avoid error messages by using the `-q` (`--quiet`)
+  option.
+
+### The "Update" option
+
+The new feature allows the memory report to automatically update the hcl report
+tables. The changes are not committed though, leaving the option to review and
+fix the final result.
+
+The option is `-u` (`--update`)
+
+Example usage:
+
+1. Command:
+
+    ```bash
+    find . -name "Micro-Star_International_Co.,_Ltd.*.tar.gz" -print0 | xargs -0 -n1 bash -c './dts-hclmgr --quiet --force --update  memory "$0"'
+    ```
+
+2. Snippet of output:
+
+    ```bash
+    Modified: docs/docs/resources/hcl/memory/pro-z690-a-wifi-ddr4.md
+    Diff:
+    20a21
+    > | Kingston | KF3200C16D4/32GX | 32768 MB | 2400 MT/s (PC4-19200) | -/-/&#10004 | v0.4.0 | Dasharo HCL report |
+    End Diff
+    From #lines
+        41     768    4376
+    To #lines
+        42     788    4487
+    ```
+
+    Here:
+
+    1. Information about what file was modified:
+
+        `Modified: docs/docs/resources/hcl/memory/pro-z690-a-wifi-ddr4.md`
+
+    2. Diff from the changes:
+
+        ```bash
+        Diff:
+        20a21
+        > | Kingston | KF3200C16D4/32GX | 32768 MB | 2400 MT/s (PC4-19200) | -/-/&#10004 | v0.4.0 | Dasharo HCL report |
+        End Diff
+        ```
+
+    3. Information about how the number of line changed:
+
+        ```bash
+        From #lines
+            41     768    4376
+        To #lines
+            42     788    4487
+        ```

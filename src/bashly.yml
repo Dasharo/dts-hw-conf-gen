@@ -60,3 +60,14 @@ flags:
     short: -q
     help: Do no throw errors while parsing HCLs.
     default: false
+  - long: --update
+    short: -u
+    help: Update table in dasharo docs.
+    default: false
+  - long: --checkout-docs
+    help: Checkout the dasharo docs repository
+    default: false
+  - long: --debug
+    short: -d
+    help: Enable debug output
+    default: false
