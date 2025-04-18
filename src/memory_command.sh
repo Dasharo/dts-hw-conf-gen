@@ -4,6 +4,8 @@
 hcl_report=${args[hcl_report]}
 force=${args[--force]}
 quiet=${args[--quiet]}
+update=${args[--update]}
+checkout_docs=${args[--checkout - docs]}
 
 # Extract the directory name from the file path
 dir_name=$(basename "$hcl_report" .tar.gz)
@@ -80,3 +82,26 @@ for ((bank = 1; bank <= num_modules; bank++)); do
   fi
 
 done
+
+if [ "$update" ]; then
+
+  if [ "$checkout_docs" ]; then
+    # Update docs/ submodule
+    git submodule update --init
+  fi
+
+  board_name=$(extract_board_name "$dir_name/logs/dmidecode.log")
+  base_hcl_path="docs/docs/resources/hcl/memory/"
+
+  case "$board_name" in
+  "PRO Z790-P WIFI (MS-7E06)")
+    hcl_file_path="$base_hcl_path/pro-z790-p-wifi.md"
+    ;;
+  *)
+    echo "Unknown or unsupported board: $board_name" >&2
+    exit 1
+    ;;
+  esac
+
+  echo "File with HCL table: $hcl_file_path" >&2
+fi

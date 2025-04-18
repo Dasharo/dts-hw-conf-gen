@@ -13,6 +13,22 @@ extract_dasharo_version() {
   echo "$dasharo_version"
 }
 
+extract_board_name() {
+  local dmidecode_file="$1"
+  local product_name
+
+  product_name=$(awk '
+  /^Handle .*DMI type 2,/ { in_base_board=1; next }
+  /^Handle / { in_base_board=0 }
+  in_base_board && /Product Name:/ {
+      sub(/^.*Product Name:[[:space:]]*/, "", $0)
+      print
+      exit
+  }' "$dmidecode_file")
+
+  echo "$product_name"
+}
+
 perform_extraction() {
   local dir_name=$1
   local force=$2

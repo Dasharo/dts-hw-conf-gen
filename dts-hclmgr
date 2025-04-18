@@ -47,6 +47,16 @@ dts_hclmgr_usage() {
     printf "    Do no throw errors while parsing HCLs.\n"
     echo
 
+    # :flag.usage
+    printf "  %s\n" "--update, -u"
+    printf "    Update table in dasharo docs.\n"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--checkout-docs"
+    printf "    Checkout the dasharo docs repository\n"
+    echo
+
     # :command.usage_fixed_flags
     printf "  %s\n" "--help, -h"
     printf "    Show this help\n"
@@ -282,6 +292,22 @@ extract_dasharo_version() {
   echo "$dasharo_version"
 }
 
+extract_board_name() {
+  local dmidecode_file="$1"
+  local product_name
+
+  product_name=$(awk '
+  /^Handle .*DMI type 2,/ { in_base_board=1; next }
+  /^Handle / { in_base_board=0 }
+  in_base_board && /Product Name:/ {
+      sub(/^.*Product Name:[[:space:]]*/, "", $0)
+      print
+      exit
+  }' "$dmidecode_file")
+
+  echo "$product_name"
+}
+
 perform_extraction() {
   local dir_name=$1
   local force=$2
@@ -381,6 +407,8 @@ dts_hclmgr_memory_command() {
   hcl_report=${args[hcl_report]}
   force=${args[--force]}
   quiet=${args[--quiet]}
+  update=${args[--update]}
+  checkout_docs=${args[--checkout - docs]}
 
   # Extract the directory name from the file path
   dir_name=$(basename "$hcl_report" .tar.gz)
@@ -457,6 +485,29 @@ dts_hclmgr_memory_command() {
     fi
 
   done
+
+  if [ "$update" ]; then
+
+    if [ "$checkout_docs" ]; then
+      # Update docs/ submodule
+      git submodule update --init
+    fi
+
+    board_name=$(extract_board_name "$dir_name/logs/dmidecode.log")
+    base_hcl_path="docs/docs/resources/hcl/memory/"
+
+    case "$board_name" in
+    "PRO Z790-P WIFI (MS-7E06)")
+      hcl_file_path="$base_hcl_path/pro-z790-p-wifi.md"
+      ;;
+    *)
+      echo "Unknown or unsupported board: $board_name" >&2
+      exit 1
+      ;;
+    esac
+
+    echo "File with HCL table: $hcl_file_path" >&2
+  fi
 
 }
 
@@ -592,6 +643,22 @@ parse_requirements() {
 
       # :flag.case_no_arg
       args['--quiet']=1
+      shift
+      ;;
+
+    # :flag.case
+    --update | -u)
+
+      # :flag.case_no_arg
+      args['--update']=1
+      shift
+      ;;
+
+    # :flag.case
+    --checkout-docs)
+
+      # :flag.case_no_arg
+      args['--checkout-docs']=1
       shift
       ;;
 
