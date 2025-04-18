@@ -17,7 +17,7 @@ dasharo_version=$(extract_dasharo_version "$dir_name/logs/dmidecode.log")
 
 if [ -z "$dasharo_version" ]; then
   if [ "$quiet" != "1" ]; then
-    echo "ERROR: Vendor BIOS HCL"
+    echo "ERROR: Vendor BIOS HCL" >&2
   fi
   exit 1
 fi
@@ -27,7 +27,7 @@ decodedimms_file="$dir_name/logs/decode-dimms.log"
 
 if [ ! -f "$decodedimms_file" ]; then
   if [ "$quiet" != "1" ]; then
-    echo "ERROR: Decode DIMMs does not exist: $decodedimms_file"
+    echo "ERROR: Decode DIMMs does not exist: $decodedimms_file" >&2
   fi
   exit 1
 fi
@@ -37,12 +37,12 @@ file_contents=$(<"$decodedimms_file")
 num_modules=$(grep -oP "(?<=Number of SDRAM DIMMs detected and decoded: )\d+" "$decodedimms_file" || true)
 if [ -z "$num_modules" ]; then
   if [ "$quiet" != "1" ]; then
-    echo "ERROR: No memory modules found"
+    echo "ERROR: No memory modules found" >&2
   fi
   exit 1
 fi
 
-if [ "$quiet" != "1" ]; then
+if [ "$debug" ]; then
   echo "Memory modules: $num_modules"
 fi
 
@@ -92,6 +92,7 @@ if [ "$update" ]; then
 
   board_name=$(extract_board_name "$dir_name/logs/dmidecode.log")
   base_hcl_path="docs/docs/resources/hcl/memory/"
+  hcl_file_path=""
 
   case "$board_name" in
   "PRO Z690-A DDR4")
@@ -112,5 +113,7 @@ if [ "$update" ]; then
     ;;
   esac
 
-  echo "File with HCL table: $hcl_file_path" >&2
+  if [ "$debug" ]; then
+    echo "File with HCL table: $hcl_file_path" >&2
+  fi
 fi

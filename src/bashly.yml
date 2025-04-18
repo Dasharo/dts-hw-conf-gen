@@ -67,3 +67,7 @@ flags:
   - long: --checkout-docs
     help: Checkout the dasharo docs repository
     default: false
+  - long: --debug
+    short: -d
+    help: Enable debug output
+    default: false

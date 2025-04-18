@@ -57,6 +57,11 @@ dts_hclmgr_usage() {
     printf "    Checkout the dasharo docs repository\n"
     echo
 
+    # :flag.usage
+    printf "  %s\n" "--debug, -d"
+    printf "    Enable debug output\n"
+    echo
+
     # :command.usage_fixed_flags
     printf "  %s\n" "--help, -h"
     printf "    Show this help\n"
@@ -420,7 +425,7 @@ dts_hclmgr_memory_command() {
 
   if [ -z "$dasharo_version" ]; then
     if [ "$quiet" != "1" ]; then
-      echo "ERROR: Vendor BIOS HCL"
+      echo "ERROR: Vendor BIOS HCL" >&2
     fi
     exit 1
   fi
@@ -430,7 +435,7 @@ dts_hclmgr_memory_command() {
 
   if [ ! -f "$decodedimms_file" ]; then
     if [ "$quiet" != "1" ]; then
-      echo "ERROR: Decode DIMMs does not exist: $decodedimms_file"
+      echo "ERROR: Decode DIMMs does not exist: $decodedimms_file" >&2
     fi
     exit 1
   fi
@@ -440,12 +445,12 @@ dts_hclmgr_memory_command() {
   num_modules=$(grep -oP "(?<=Number of SDRAM DIMMs detected and decoded: )\d+" "$decodedimms_file" || true)
   if [ -z "$num_modules" ]; then
     if [ "$quiet" != "1" ]; then
-      echo "ERROR: No memory modules found"
+      echo "ERROR: No memory modules found" >&2
     fi
     exit 1
   fi
 
-  if [ "$quiet" != "1" ]; then
+  if [ "$debug" ]; then
     echo "Memory modules: $num_modules"
   fi
 
@@ -495,6 +500,7 @@ dts_hclmgr_memory_command() {
 
     board_name=$(extract_board_name "$dir_name/logs/dmidecode.log")
     base_hcl_path="docs/docs/resources/hcl/memory/"
+    hcl_file_path=""
 
     case "$board_name" in
     "PRO Z690-A DDR4")
@@ -515,7 +521,9 @@ dts_hclmgr_memory_command() {
       ;;
     esac
 
-    echo "File with HCL table: $hcl_file_path" >&2
+    if [ "$debug" ]; then
+      echo "File with HCL table: $hcl_file_path" >&2
+    fi
   fi
 
 }
@@ -668,6 +676,14 @@ parse_requirements() {
 
       # :flag.case_no_arg
       args['--checkout-docs']=1
+      shift
+      ;;
+
+    # :flag.case
+    --debug | -d)
+
+      # :flag.case_no_arg
+      args['--debug']=1
       shift
       ;;
 
