@@ -114,6 +114,6 @@ if [ "$update" ]; then
   esac
 
   if [ "$debug" ]; then
-    echo "File with HCL table: $hcl_file_path" >&2
+    echo "File with HCL table: $hcl_file_path"
   fi
 fi
