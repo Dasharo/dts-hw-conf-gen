@@ -503,16 +503,16 @@ dts_hclmgr_memory_command() {
     hcl_file_path=""
 
     case "$board_name" in
-    "PRO Z690-A DDR4")
+    "PRO Z690-A DDR4"*)
       hcl_file_path="$base_hcl_path/pro-z690-a-ddr4.md"
       ;;
-    "PRO Z690-A WIFI DDR4")
+    "PRO Z690-A WIFI DDR4"*)
       hcl_file_path="$base_hcl_path/pro-z690-a-wifi-ddr4.md"
       ;;
-    "PRO Z790-P DDR4")
+    "PRO Z790-P DDR4"*)
       hcl_file_path="$base_hcl_path/pro-z790-p-ddr4.md"
       ;;
-    "PRO Z790-P WIFI DDR4")
+    "PRO Z790-P WIFI DDR4"*)
       hcl_file_path="$base_hcl_path/pro-z790-p-wifi-ddr4.md"
       ;;
     *)
