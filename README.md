@@ -72,34 +72,22 @@ Example  `platform_name_prefix` for Dasharo supported platforms:
 
 ## Dasharo Memory HCL generation
 
-1. Do the same preparations as for CPU HCL.
-
-2. Example command:
-
-    ```bash
-    find . -name "Micro-Star_International_Co.,_Ltd.*.tar.gz" -print0 | xargs -0 -n1 bash -c './dts-hclmgr --force  memory "$0"'
-    ```
-
-  Note: it is possible to avoid error messages by using the `-q` (`--quiet`)
-  option.
-
-### The "Update" option
-
 The new feature allows the memory report to automatically update the hcl report
 tables. The changes are not committed though, leaving the option to review and
 fix the final result.
-
 The option is `-u` (`--update`)
 
-Example usage:
+To generate memory hcl report:
 
-1. Command:
+1. Do the same preparations as for CPU HCL (steps 1-3).
+
+2. Command:
 
     ```bash
     find . -name "Micro-Star_International_Co.,_Ltd.*.tar.gz" -print0 | xargs -0 -n1 bash -c './dts-hclmgr --quiet --force --update  memory "$0"'
     ```
 
-2. Snippet of output:
+3. Snippet of output:
 
     ```bash
     Modified: docs/docs/resources/hcl/memory/pro-z690-a-wifi-ddr4.md
@@ -136,3 +124,25 @@ Example usage:
         To #lines
             42     788    4487
         ```
+
+4. After the script has finished, go to the `docs` directory:
+
+    ```bash
+    cd docs
+    ```
+
+5. Display the diff:
+
+    ```bash
+    git diff
+    ```
+
+6. Commit the desired file:
+
+    ```bash
+    git add <path-to-file>
+    ```
+
+    ```bash
+    git commit -sm "<COMMIT_MESSAGE>"
+    ```
