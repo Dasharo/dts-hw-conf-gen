@@ -48,7 +48,7 @@ use following snippets:
 8. Check which entries are missing in [Dasharo HCL
    Documentation](https://docs.dasharo.com/unified/msi/hcl/) and update the list
    accordingly.
-9. Update date of the hcl report in the documentation.
+9. Update date of the HCL report in the documentation.
 
 Example  `platform_name_prefix` for Dasharo supported platforms:
 
@@ -72,22 +72,40 @@ Example  `platform_name_prefix` for Dasharo supported platforms:
 
 ## Dasharo Memory HCL generation
 
-The new feature allows the memory report to automatically update the hcl report
+The new feature allows the memory report to automatically update the HCL report
 tables. The changes are not committed though, leaving the option to review and
 fix the final result.
 The option is `-u` (`--update`)
 
-To generate memory hcl report:
+To generate memory HCL report:
 
 1. Do the same preparations as for CPU HCL (steps 1-3).
 
-2. Command:
+1. Clone the `docs` submodule:
+
+    ```bash
+    git submodule update --init
+    ```
+
+1. Run the script for all HCL reports found in the directory:
 
     ```bash
     find . -name "Micro-Star_International_Co.,_Ltd.*.tar.gz" -print0 | xargs -0 -n1 bash -c './dts-hclmgr --quiet --force --update  memory "$0"'
     ```
 
-3. Snippet of output:
+    Note: here the `--force` option is used. With it, the script would unpack
+    all reports again. The script execution may take a while.
+
+    Note: Interrupting the script may break the HCL table in
+    `docs/resources/hcl`. In that case, run:
+
+    ```bash
+    rm -rf docs/ && git submodule update --init
+    ```
+
+    to re-init the `docs` submodule and run the script again.
+
+1. Snippet of output:
 
     ```bash
     Modified: docs/docs/resources/hcl/memory/pro-z690-a-wifi-ddr4.md
@@ -107,7 +125,7 @@ To generate memory hcl report:
 
         `Modified: docs/docs/resources/hcl/memory/pro-z690-a-wifi-ddr4.md`
 
-    2. Diff from the changes:
+    1. Diff from the changes:
 
         ```bash
         Diff:
@@ -116,7 +134,7 @@ To generate memory hcl report:
         End Diff
         ```
 
-    3. Information about how the number of line changed:
+    1. Information about how the number of line changed:
 
         ```bash
         From #lines
@@ -125,19 +143,36 @@ To generate memory hcl report:
             42     788    4487
         ```
 
-4. After the script has finished, go to the `docs` directory:
+    Note: If the changes are already present, or there are no new memory
+    modules, script will display:
+
+      ```bash
+      No changes made to docs/docs/resources/hcl/memory/pro-z690-a-wifi-ddr4.md
+      ```
+
+    If the memory report is valid, but the board is not supported by the script,
+    the script will display:
+
+      ```bash
+      Error: Unknown or unsupported board: PRO Z690-A DDR4(MS-7D25)
+      ```
+
+1. After the script has finished, go to the `docs` directory:
 
     ```bash
     cd docs
     ```
 
-5. Display the diff:
+1. Display the diff:
 
     ```bash
     git diff
     ```
 
-6. Commit the desired file:
+    Note: If the HCL report does not provide any new information, there may be
+    no differences. In that case, no actions required.
+
+1. Commit the desired file:
 
     ```bash
     git add <path-to-file>
