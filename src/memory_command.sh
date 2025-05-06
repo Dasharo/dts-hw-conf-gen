@@ -4,6 +4,8 @@
 hcl_report=${args[hcl_report]}
 force=${args[--force]}
 quiet=${args[--quiet]}
+update=${args[--update]}
+checkout_docs=${args[--checkout - docs]}
 
 # Extract the directory name from the file path
 dir_name=$(basename "$hcl_report" .tar.gz)
@@ -15,7 +17,7 @@ dasharo_version=$(extract_dasharo_version "$dir_name/logs/dmidecode.log")
 
 if [ -z "$dasharo_version" ]; then
   if [ "$quiet" != "1" ]; then
-    echo "ERROR: Vendor BIOS HCL"
+    echo "ERROR: Vendor BIOS HCL" >&2
   fi
   exit 1
 fi
@@ -25,7 +27,7 @@ decodedimms_file="$dir_name/logs/decode-dimms.log"
 
 if [ ! -f "$decodedimms_file" ]; then
   if [ "$quiet" != "1" ]; then
-    echo "ERROR: Decode DIMMs does not exist: $decodedimms_file"
+    echo "ERROR: Decode DIMMs does not exist: $decodedimms_file" >&2
   fi
   exit 1
 fi
@@ -35,17 +37,16 @@ file_contents=$(<"$decodedimms_file")
 num_modules=$(grep -oP "(?<=Number of SDRAM DIMMs detected and decoded: )\d+" "$decodedimms_file" || true)
 if [ -z "$num_modules" ]; then
   if [ "$quiet" != "1" ]; then
-    echo "ERROR: No memory modules found"
+    echo "ERROR: No memory modules found" >&2
   fi
   exit 1
 fi
 
-if [ "$quiet" != "1" ]; then
+if [ "$debug" ]; then
   echo "Memory modules: $num_modules"
 fi
 
-# Declare an associative array to act as the buffer
-declare -A printed_entries
+declare -a new_rows
 
 # Loop through each bank
 for ((bank = 1; bank <= num_modules; bank++)); do
@@ -70,13 +71,29 @@ for ((bank = 1; bank <= num_modules; bank++)); do
     ;;
   esac
 
-  entry=$"| $module_manufacturer | $part_num | $size | $speed | $conf | $dasharo_version | Dasharo HCL report |"
+  entry="| $module_manufacturer | $part_num | $size | $speed | $conf | $dasharo_version | Dasharo HCL report |"
 
-  if [ -n "${printed_entries[$entry]}" ]; then
-    continue
-  else
-    printed_entries["$entry"]=1
-    echo "$entry"
-  fi
+  for row in "${new_rows[@]}"; do
+    if [[ "$row" == "$entry" ]]; then
+      continue
+    fi
+  done
+  new_rows+=("$entry")
 
 done
+
+if [ "$update" ]; then
+
+  if [ "$checkout_docs" ]; then
+    # Update docs/ submodule
+    git submodule update --init
+  fi
+
+  board_name=$(extract_board_name "$dir_name/logs/dmidecode.log")
+  hcl_file_path=$(get_hcl_file_path "$board_name" "memory")
+
+  [ "$debug" ] && echo "File with HCL table: $hcl_file_path"
+
+  update_table "$hcl_file_path" "${new_rows[@]}"
+
+fi
