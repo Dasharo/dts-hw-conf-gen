@@ -79,15 +79,26 @@ The option is `-u` (`--update`)
 
 To generate memory HCL report:
 
-1. Do the same preparations as for CPU HCL (steps 1-3).
+1. Clone the `dts-hw-conf-gen` repository.
 
-1. Clone the `docs` submodule:
+After this step, you have the main project code, but the `docs/` directory
+(which is a submodule) is either empty or only contains a reference (the
+`.gitmodules` file).
+
+1. Clone the `docs` submodule (in the `dts-hw-conf-gen` cloned repository):
 
     ```bash
     git submodule update --init
     ```
 
-1. Run the script for all HCL reports found in the directory:
+1. Download the `dasharo_hcl_reports` folder from 3mdeb's Cloud and extract the
+HCL file directly into the `dts-hw-conf-gen` repository you previously
+downloaded. After extraction, you should see two new folders named: `external`
+and `internal`.
+
+1. Run the script for all HCL reports found in the directory. Make sure you are
+in the `dts-hw-conf-gen` directory when executing the script, as it requires
+access to the `external` and `internal` folders located in the same directory.
 
     ```bash
     find . -name "Micro-Star_International_Co.,_Ltd.*.tar.gz" -print0 | xargs -0 -n1 bash -c './dts-hclmgr --quiet --force --update  memory "$0"'
