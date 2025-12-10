@@ -2,6 +2,12 @@
 # lib/dasharo.sh
 # shellcheck disable=SC2154
 
+log() {
+  if [ "$quiet" != "1" ]; then
+    echo "$@" >&2
+  fi
+}
+
 extract_dasharo_version() {
   local dmidecode_file="$1"
   local dasharo_line
@@ -55,9 +61,7 @@ perform_extraction() {
 
   # Unpack the tar.gz file into the directory
   if ! tar -xzf "$hcl_report" -C "$dir_name" >/dev/null 2>&1; then
-    if [ "$quiet" != "1" ]; then
-      echo "Error: Failed to extract archive: $hcl_report"
-    fi
+    log "Error: Failed to extract archive: $hcl_report"
     exit 1
   fi
 }
@@ -82,6 +86,26 @@ extract_lookup_string_from_decode_dimms() {
   echo "$cleaned"
 }
 
+extract_lookup_string_from_dmidecode() {
+  local handle_id="$1"
+  local file_contents="$2"
+  local lookup_string="$3"
+
+  # Find the line number of the given memory device line
+  device_line_number=$(echo "$file_contents" | awk '/'"$handle_id"'/ {print NR; exit}')
+
+  # Find the first occurrence of lookup string after the given bank line
+  match_line=$(echo "$file_contents" | awk -v line="$device_line_number" 'NR > line && /'"$lookup_string"'/ {print NR; exit}')
+
+  lookup_string_extracted=$(echo "$file_contents" | awk "NR == $match_line")
+
+  restul_tmp=$(echo "$lookup_string_extracted" | awk -F "$lookup_string" '{print $2}')
+
+  # Trim leading and trailing whitespace
+  cleaned=$(echo "$restul_tmp" | awk '{$1=$1;print}')
+  echo "$cleaned"
+}
+
 # Return the appropriate HCL file path
 get_hcl_file_path() {
   local board_name="$1"
@@ -89,10 +113,13 @@ get_hcl_file_path() {
   local base_path="docs/docs/resources/hcl/$category"
 
   case "$board_name" in
-  "PRO Z690-A WIFI DDR4"*) echo "$base_path/pro-z690-a-wifi-ddr4.md" ;;
-  "PRO Z690-A WIFI"*) echo "$base_path/pro-z690-a-wifi.md" ;;
-  "PRO Z790-P WIFI DDR4"*) echo "$base_path/pro-z790-p-wifi-ddr4.md" ;;
-  "PRO Z790-P WIFI"*) echo "$base_path/pro-z790-p-wifi-ddr4.md" ;;
+  "PRO Z690-A DDR4(MS-7D25)") echo "$base_path/pro-z690-a-wifi-ddr4.md" ;;
+  "PRO Z690-A (MS-7D25)" ) echo "$base_path/pro-z690-a-wifi.md" ;;
+  "PRO Z690-A WIFI DDR4(MS-7D25)") echo "$base_path/pro-z690-a-wifi-ddr4.md" ;;
+  "PRO Z690-A WIFI (MS-7D25)") echo "$base_path/pro-z690-a-wifi.md" ;;
+  "PRO Z790-P (MS-7E06)") echo "$base_path/pro-z790-p-wifi.md" ;;
+  "PRO Z790-P WIFI DDR4 (MS-7E06)") echo "$base_path/pro-z790-p-wifi-ddr4.md" ;;
+  "PRO Z790-P WIFI (MS-7E06)") echo "$base_path/pro-z790-p-wifi.md" ;;
   *)
     echo "Error: Unknown or unsupported board: $board_name" >&2
     return 1
@@ -149,4 +176,42 @@ update_table() {
   fi
 
   rm -f before.md table.md table_sorted.md
+}
+
+# Use in a loop in memory_command.sh
+generate_memory_table_entry() {
+  local num_modules="$1"
+  local module_manufacturer="$2"
+  local part_num="$3"
+  local size="$4"
+  local speed="$5"
+  local dasharo_version="$6"
+
+  declare -a new_rows
+
+  case $num_modules in
+  1)
+    conf="&#10004/-/-"
+    ;;
+  2)
+    conf="-/&#10004/-"
+    ;;
+  4)
+    conf="-/-/&#10004"
+    ;;
+  *)
+    conf="unknown"
+    ;;
+  esac
+
+  local entry="| $module_manufacturer | $part_num | $size | $speed | $conf | $dasharo_version | Dasharo HCL report |"
+
+  for row in "${new_rows[@]}"; do
+    if [[ "$row" == "$entry" ]]; then
+      return
+    fi
+  done
+
+  new_rows+=("$entry")
+  printf '%s\n' "${new_rows[@]}"
 }

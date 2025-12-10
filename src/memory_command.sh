@@ -16,71 +16,93 @@ perform_extraction "$dir_name" "$force" "$hcl_report"
 dasharo_version=$(extract_dasharo_version "$dir_name/logs/dmidecode.log")
 
 if [ -z "$dasharo_version" ]; then
-  if [ "$quiet" != "1" ]; then
-    echo "ERROR: Vendor BIOS HCL" >&2
-  fi
+  log "ERROR: Vendor BIOS HCL" >&2
   exit 1
 fi
 
-# File containing the decode-dimms
+# Files with logs for processing
 decodedimms_file="$dir_name/logs/decode-dimms.log"
+dmidecode_file="$dir_name/logs/dmidecode.log"
 
 if [ ! -f "$decodedimms_file" ]; then
-  if [ "$quiet" != "1" ]; then
-    echo "ERROR: Decode DIMMs does not exist: $decodedimms_file" >&2
+  log "Decode DIMMs does not exist: $decodedimms_file, checking for dmidecode..."
+  if [ -s "$dmidecode_file" ]; then
+    log "But dmidecode exists, proceeding."
+  else
+    log "ERROR: Neither $decodedimms_file nor $dmidecode_file suitable for processing."
+    exit 1
   fi
-  exit 1
 fi
 
-file_contents=$(<"$decodedimms_file")
+# Try to use decode-dimms first, since the file exists and isn't empty
+if [ -s "$decodedimms_file" ]; then
+  log "INFO: Trying decodedimms-based strategy."
+  file_contents=$(<"$decodedimms_file")
 
-num_modules=$(grep -oP "(?<=Number of SDRAM DIMMs detected and decoded: )\d+" "$decodedimms_file" || true)
-if [ -z "$num_modules" ]; then
-  if [ "$quiet" != "1" ]; then
-    echo "ERROR: No memory modules found" >&2
+  num_modules=$(grep -oP "(?<=Number of SDRAM DIMMs detected and decoded: )\d+" "$decodedimms_file" || true)
+  if [ -z "$num_modules" ]; then
+    log "ERROR: No memory modules found"
+    exit 1
   fi
-  exit 1
-fi
 
-if [ "$debug" ]; then
-  echo "Memory modules: $num_modules"
-fi
+  if [ "$debug" ]; then
+    echo "Memory modules: $num_modules"
+  fi
 
-declare -a new_rows
+  declare -a new_rows
 
-# Loop through each bank
-for ((bank = 1; bank <= num_modules; bank++)); do
+  # Loop through each bank
+  for ((bank = 1; bank <= num_modules; bank++)); do
 
-  module_manufacturer=$(extract_lookup_string_from_decode_dimms $bank "$file_contents" "Module Manufacturer")
-  part_num=$(extract_lookup_string_from_decode_dimms $bank "$file_contents" "Part Number")
-  size=$(extract_lookup_string_from_decode_dimms $bank "$file_contents" "Size")
-  speed=$(extract_lookup_string_from_decode_dimms $bank "$file_contents" "Maximum module speed")
+    module_manufacturer=$(extract_lookup_string_from_decode_dimms $bank "$file_contents" "Module Manufacturer")
+    part_num=$(extract_lookup_string_from_decode_dimms $bank "$file_contents" "Part Number")
+    size=$(extract_lookup_string_from_decode_dimms $bank "$file_contents" "Size")
+    speed=$(extract_lookup_string_from_decode_dimms $bank "$file_contents" "Maximum module speed")
 
-  case $num_modules in
-  1)
-    conf="&#10004/-/-"
-    ;;
-  2)
-    conf="-/&#10004/-"
-    ;;
-  4)
-    conf="-/-/&#10004"
-    ;;
-  *)
-    conf="unknown"
-    ;;
-  esac
+    generated_entry=$(generate_memory_table_entry "$num_modules" \
+      "$module_manufacturer" "$part_num" "$size" "$speed" "$dasharo_version")
+    new_rows+=("$generated_entry")
 
-  entry="| $module_manufacturer | $part_num | $size | $speed | $conf | $dasharo_version | Dasharo HCL report |"
-
-  for row in "${new_rows[@]}"; do
-    if [[ "$row" == "$entry" ]]; then
-      continue
-    fi
   done
-  new_rows+=("$entry")
+fi
+if [ -s "$dmidecode_file" ]; then
+  log "INFO: Trying dmidecode-based strategy."
 
-done
+  # Read the file, but remove all the occurrences of "Configured Memory Speed"
+  # dmidecode entry, otherwise it could cause false positives when searching
+  # for "Speed" entry:
+  file_contents=$(sed '/Configured Memory Speed/d' "$dmidecode_file")
+  memory_handles=($(grep -o "Handle 0x...., DMI type 17" "$dmidecode_file" | grep -o "0x...." || true))
+  num_modules=${#memory_handles[@]}
+
+  if [ -z "$num_modules" ]; then
+    log "ERROR: No memory modules found" >&2
+    exit 1
+  fi
+
+  if [ "$debug" ]; then
+    echo "DEBUG: Reading file ${dmidecode_file}..."
+    echo "DEBUG: Memory modules: $num_modules"
+    echo "DEBUG: Memory handles: ${memory_handles[*]}"
+  fi
+
+  declare -a new_rows
+
+  for handle in "${memory_handles[@]}"; do
+
+    module_manufacturer=$(extract_lookup_string_from_dmidecode $handle "$file_contents" "Manufacturer:")
+    part_num=$(extract_lookup_string_from_dmidecode $handle "$file_contents" "Part Number:")
+    size=$(extract_lookup_string_from_dmidecode $handle "$file_contents" "Size:")
+    # See the comment on "Configured Memory Speed" from earlier - normally that
+    # pattern would be matched, but here it has already been removed.
+    speed=$(extract_lookup_string_from_dmidecode $handle "$file_contents" "Speed:")
+
+    generated_entry=$(generate_memory_table_entry "$num_modules" \
+      "$module_manufacturer" "$part_num" "$size" "$speed" "$dasharo_version")
+    new_rows+=("$generated_entry")
+
+  done
+fi
 
 if [ "$update" ]; then
 

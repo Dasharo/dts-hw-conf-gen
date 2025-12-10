@@ -1,6 +1,6 @@
 name: dts-hclmgr
 help: Dasharo Tools Suite Hardware Compatibility List Manager
-version: 0.1.0
+version: 0.1.1
 
 commands:
 - name: cpu
