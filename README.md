@@ -15,6 +15,14 @@ use following snippets:
 
 ## Dasharo CPU HCL generation
 
+Just like the memory report, the CPU report can automatically update the HCL
+report tables with the `-u` (`--update`) option. The changes are not committed
+though, leaving the option to review and fix the final result. If you prefer to
+build the list by hand, follow the manual workflow below; for the automatic
+update jump to [Automatic CPU HCL updates](#automatic-cpu-hcl-updates).
+
+### Manual CPU HCL generation
+
 1. Download the `dasharo_hcl_reports` folder from 3mdeb's Cloud and unzip it.
 2. Clone the `dts-hw-conf-gen` repository.
 3. Copy the `dts-hclmgr` file from the cloned repository to the
@@ -69,6 +77,68 @@ Example  `platform_name_prefix` for Dasharo supported platforms:
 * `Protectli_VP4630`
 * `Protectli_VP4670`
 * `Protectli_VP6670`
+
+### Automatic CPU HCL updates
+
+The `-u` (`--update`) option makes the script update the CPU HCL tables in the
+`docs` submodule directly, the same way it does for memory reports. The changes
+are left uncommitted so you can review and fix the final result. CPU
+compatibility does not depend on the memory type, so every DDR4/DDR5 and
+WIFI/non-WIFI variant of a board is written to a single CPU HCL file.
+
+1. Clone the `dts-hw-conf-gen` repository.
+
+1. Clone the `docs` submodule (in the `dts-hw-conf-gen` cloned repository):
+
+    ```bash
+    git submodule update --init
+    ```
+
+1. Download the `dasharo_hcl_reports` folder from 3mdeb's Cloud and extract the
+HCL file directly into the `dts-hw-conf-gen` repository you previously
+downloaded.
+
+1. Run the script for all HCL reports found in the directory. Make sure you are
+in the `dts-hw-conf-gen` directory when executing the script, as it requires
+access to the `docs` submodule located in the same directory.
+
+    ```bash
+    find . -name "Micro-Star_International_Co.,_Ltd.*.tar.gz" -print0 | xargs -0 -n1 bash -c './dts-hclmgr --quiet --force --update cpu "$0"'
+    ```
+
+    Note: here the `--force` option is used. With it, the script would unpack
+    all reports again. The script execution may take a while.
+
+    Note: Interrupting the script may break the HCL table in
+    `docs/resources/hcl`. In that case, run:
+
+    ```bash
+    rm -rf docs/ && git submodule update --init
+    ```
+
+    to re-init the `docs` submodule and run the script again.
+
+1. The output format is the same as for the memory update (see the memory
+section below): `Modified:`/`No changes made to` lines, a `Diff:` block and the
+`From #lines`/`To #lines` summary.
+
+    Note: If the changes are already present, or there are no new CPUs, the
+    script will display:
+
+      ```bash
+      No changes made to docs/docs/resources/hcl/cpu/pro-z690-a-wifi-ddr4.md
+      ```
+
+    If the report is valid, but the board is not supported by the script, the
+    script will display:
+
+      ```bash
+      Error: Unknown or unsupported board: PRO Z690-A DDR4(MS-7D25)
+      ```
+
+1. After the script has finished, go to the `docs` directory, review the diff
+with `git diff` and commit the desired files (same as the memory workflow
+described below).
 
 ## Dasharo Memory HCL generation
 

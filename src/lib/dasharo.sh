@@ -112,16 +112,42 @@ get_hcl_file_path() {
   local category="$2"
   local base_path="docs/docs/resources/hcl/$category"
 
-  case "$board_name" in
-  "PRO Z690-A DDR4(MS-7D25)") echo "$base_path/pro-z690-a-wifi-ddr4.md" ;;
-  "PRO Z690-A (MS-7D25)" ) echo "$base_path/pro-z690-a-wifi.md" ;;
-  "PRO Z690-A WIFI DDR4(MS-7D25)") echo "$base_path/pro-z690-a-wifi-ddr4.md" ;;
-  "PRO Z690-A WIFI (MS-7D25)") echo "$base_path/pro-z690-a-wifi.md" ;;
-  "PRO Z790-P (MS-7E06)") echo "$base_path/pro-z790-p-wifi.md" ;;
-  "PRO Z790-P WIFI DDR4 (MS-7E06)") echo "$base_path/pro-z790-p-wifi-ddr4.md" ;;
-  "PRO Z790-P WIFI (MS-7E06)") echo "$base_path/pro-z790-p-wifi.md" ;;
+  case "$category" in
+  memory)
+    case "$board_name" in
+    "PRO Z690-A DDR4(MS-7D25)") echo "$base_path/pro-z690-a-wifi-ddr4.md" ;;
+    "PRO Z690-A (MS-7D25)") echo "$base_path/pro-z690-a-wifi.md" ;;
+    "PRO Z690-A WIFI DDR4(MS-7D25)") echo "$base_path/pro-z690-a-wifi-ddr4.md" ;;
+    "PRO Z690-A WIFI (MS-7D25)") echo "$base_path/pro-z690-a-wifi.md" ;;
+    "PRO Z790-P (MS-7E06)") echo "$base_path/pro-z790-p-wifi.md" ;;
+    "PRO Z790-P WIFI DDR4 (MS-7E06)") echo "$base_path/pro-z790-p-wifi-ddr4.md" ;;
+    "PRO Z790-P WIFI (MS-7E06)") echo "$base_path/pro-z790-p-wifi.md" ;;
+    *)
+      echo "Error: Unknown or unsupported board: $board_name" >&2
+      return 1
+      ;;
+    esac
+    ;;
+  cpu)
+    # CPU compatibility does not depend on the memory type, so every DDR4/DDR5
+    # and WIFI/non-WIFI variant of a board shares a single CPU HCL file.
+    case "$board_name" in
+    "PRO Z690-A DDR4(MS-7D25)" | "PRO Z690-A (MS-7D25)" | \
+      "PRO Z690-A WIFI DDR4(MS-7D25)" | "PRO Z690-A WIFI (MS-7D25)")
+      echo "$base_path/pro-z690-a-wifi-ddr4.md"
+      ;;
+    "PRO Z790-P (MS-7E06)" | "PRO Z790-P WIFI DDR4 (MS-7E06)" | \
+      "PRO Z790-P WIFI (MS-7E06)")
+      echo "$base_path/pro-z790-p-wifi-ddr4.md"
+      ;;
+    *)
+      echo "Error: Unknown or unsupported board: $board_name" >&2
+      return 1
+      ;;
+    esac
+    ;;
   *)
-    echo "Error: Unknown or unsupported board: $board_name" >&2
+    echo "Error: Unknown or unsupported category: $category" >&2
     return 1
     ;;
   esac
@@ -141,7 +167,14 @@ update_table() {
   awk '/<!--start-->/ { flag=1; skip=2; next }
        flag && skip > 0 { skip--; next }
        /<!--end-->/ { flag=0 }
-       flag' "$hcl_file_path" >table.md
+       flag' "$hcl_file_path" >block.md
+
+  # Split the extracted block into the table rows (lines starting with "|") and
+  # any trailing footer. CPU HCL files keep blank lines and markdown
+  # reference-link definitions (e.g. "[1]: https://...") below the table, and
+  # those must be preserved verbatim instead of being sorted into the rows.
+  grep '^|' block.md >table.md || true
+  grep -v '^|' block.md >footer.md || true
 
   {
     cat table.md
@@ -158,6 +191,7 @@ update_table() {
   {
     cat before.md
     cat table_sorted.md
+    cat footer.md
     echo "<!--end-->"
   } >"${hcl_file_path}.new"
 
@@ -175,7 +209,7 @@ update_table() {
     rm -f "${hcl_file_path}.new"
   fi
 
-  rm -f before.md table.md table_sorted.md
+  rm -f before.md block.md table.md footer.md table_sorted.md
 }
 
 # Use in a loop in memory_command.sh

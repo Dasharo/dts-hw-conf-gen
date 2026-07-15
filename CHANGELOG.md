@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### 💼 Other
+
+- Add `--update` option to automatically update the hcl cpu table, mirroring the
+  memory report workflow. Reference-link footers below the CPU tables are
+  preserved.
+
 ## [1.0.0] - 2025-05-06
 
 ### 💼 Other

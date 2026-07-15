@@ -72,7 +72,7 @@ if [ -s "$dmidecode_file" ]; then
   # dmidecode entry, otherwise it could cause false positives when searching
   # for "Speed" entry:
   file_contents=$(sed '/Configured Memory Speed/d' "$dmidecode_file")
-  memory_handles=($(grep -o "Handle 0x...., DMI type 17" "$dmidecode_file" | grep -o "0x...." || true))
+  readarray -t memory_handles < <(grep -o "Handle 0x...., DMI type 17" "$dmidecode_file" | grep -o "0x...." || true)
   num_modules=${#memory_handles[@]}
 
   if [ -z "$num_modules" ]; then
